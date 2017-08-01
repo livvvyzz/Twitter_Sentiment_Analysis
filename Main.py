@@ -5,6 +5,9 @@ Created on 31/07/2017
 '''
 import tweepy
 from textblob import TextBlob 
+import csv
+
+
 
 #initialise keys and tokens from twitter
 consumer_key = "jYlLjLrZoz9iZFkwRllh0r9qx"
@@ -19,14 +22,41 @@ auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth)
 
-#search for tweets
-public_tweets = api.search('Trump')
+#topic to search sentiment
+topic = 'Trump'
 
+#function that determiens whether positive or negative
+def sentiment_type(analysis):
+    if analysis.sentiment[0] > 0:
+        return 'Positive'
+    else: 
+        return 'negative'
+
+#search for tweets
+public_tweets = api.search(q = topic, count = 100)
+
+#fields for mean
+count = 0
+total = 0
+#create file to store tweets
+with open("twitterSentiment.csv", "wb") as file:
+    file.write('tweet, sentiment_label\n')
 for tweet in public_tweets:
-    print(tweet.text)
-    
+    count = count + 1
     #Perform sentiment analysis on tweets
     analysis = TextBlob(tweet.text)
-    print(analysis.sentiment)
-    print("")
+    total = total + analysis.sentiment[0]
+    #get label of analysis
+    file.write('%s,%s\n' % (tweet.text.encode('utf8'), sentiment_type(analysis)))
+
+#get mean of all tweets
+mean = total / count
+if mean < 0:
+    sentiment = 'Negative'
+else:
+    sentiment = 'Positive'
+    
+print("Overall %s sentiment towards %s" % (sentiment, topic))
+
+
     
